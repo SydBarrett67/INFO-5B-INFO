@@ -1,66 +1,106 @@
-<html>
-<head>
+<?php
+$prezzo_menu = 25.00;
 
-	<style>
-        body {
-            background-color: rgb(100,70,70);
+$antipasti = [
+    "Bruschette al pomodoro",
+    "Caprese",
+    "Prosciutto e melone"
+];
+
+$primi = [
+    "Pasta al pesto",
+    "Lasagne al forno",
+    "Penne al pomodoro"
+];
+
+$secondi = [
+    "Cotoletta con patate",
+    "Pollo arrosto",
+    "Orata al forno"
+];
+
+$extra = [
+    "Acqua" => 2.00,
+    "Coca Cola" => 2.50,
+    "Vino" => 4.00,
+    "Caffe" => 1.50
+];
+
+$totale = $prezzo_menu;
+$aggiunte = [];
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $antipasto = $_POST['antipasto'] ?? '';
+    $primo = $_POST['primo'] ?? '';
+    $secondo = $_POST['secondo'] ?? '';
+
+    foreach ($_POST['extra'] ?? [] as $scelta) {
+        if (isset($extra[$scelta])) {
+            $aggiunte[$scelta] = $extra[$scelta];
+            $totale += $extra[$scelta];
         }
-		form {
-            color: white;
-			padding: 25px;
-		}
-		input {
-			width: 50px;
-		}
-	</style>
+    }
 
-</head>
+    $inviato = true;
+}
+?>
+
+<html>
 <body>
 
-<?php
+<h2>Menu fisso (€ 25,00)</h2>
 
-$items = array(
-	array('name'=>'Pasta','desc'=>"E' pasta dai",'price'=>1.00),
-	array('name'=>'Pane','desc'=>"Pane fresco",'price'=>1.50),
-	array('name'=>'Latte','desc'=>"Latte intero",'price'=>1.20),
-	array('name'=>'Caffè','desc'=>"Moka 250g",'price'=>2.50),
-	array('name'=>'Acqua','desc'=>"Naturale 1.5L",'price'=>0.40),
-);
+<form method="post">
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	
-	$total = 0;
-	echo "<h2>SCONTRINO</h2>";
+<h3>Antipasti</h3>
+<?php foreach ($antipasti as $piatto): ?>
+    <input type="radio" name="antipasto" value="<?php echo $piatto; ?>" required>
+    <?php echo $piatto; ?><br>
+<?php endforeach; ?>
 
-	for ($i=0; $i<count($items); $i++) {
-		$qnt = isset($_POST['qnt'][$i]) ? intval($_POST['qnt'][$i]) : 0;
+<h3>Primi</h3>
+<?php foreach ($primi as $piatto): ?>
+    <input type="radio" name="primo" value="<?php echo $piatto; ?>" required>
+    <?php echo $piatto; ?><br>
+<?php endforeach; ?>
 
-		if ($qnt > 0) {
-			$subtotal = $items[$i]['price'] * $qnt;
-			$total += $subtotal;
-			echo "<br>".$items[$i]['name']." x ".$qnt." = ".$subtotal."€";
-		}
-	}
+<h3>Secondi</h3>
+<?php foreach ($secondi as $piatto): ?>
+    <input type="radio" name="secondo" value="<?php echo $piatto; ?>" required>
+    <?php echo $piatto; ?><br>
+<?php endforeach; ?>
 
-	echo "<br><hr><b>TOTALE: ".$total."€</b>";
-	echo "<br><br><a href='".$_SERVER['PHP_SELF']."'>Nuova spesa</a>";
+<h3>Extra</h3>
+<?php foreach ($extra as $nome => $prezzo): ?>
+    <input type="checkbox" name="extra[]" value="<?php echo $nome; ?>">
+    <?php echo $nome . " (+ € " . number_format($prezzo, 2, ',', '.') . ")"; ?><br>
+<?php endforeach; ?>
 
-} else {
-	echo "<form method='POST' action='".$_SERVER['PHP_SELF']."'>";
-	for ($i=0;$i<count($items);$i++) {
-		if (isset($items[$i])) {
-			echo "<br>Elemento: ".$items[$i]['name'];
-			echo "<br>Descrizione: ".$items[$i]['desc'];
-			echo "<br>Prezzo: ".$items[$i]['price']."€";
-			echo "<br><input name='qnt[".$i."]' type='number' value='0' min='0'>";
-			echo "<br>";
-		}
-	}
-	echo "<br><input type='submit' value='Calcola'>";
-	echo "</form>";
-}
+<br>
+<button type="submit">Calcola totale</button>
 
-?>
+</form>
+
+<?php if (isset($inviato)): ?>
+
+<hr>
+<h2>Riepilogo ordine</h2>
+
+<p>Antipasto: <?php echo htmlspecialchars($antipasto); ?></p>
+<p>Primo: <?php echo htmlspecialchars($primo); ?></p>
+<p>Secondo: <?php echo htmlspecialchars($secondo); ?></p>
+
+<h3>Extra selezionati</h3>
+
+<?php foreach ($aggiunte as $nome => $prezzo): ?>
+    <p><?php echo htmlspecialchars($nome); ?>: 
+    € <?php echo number_format($prezzo, 2, ',', '.'); ?></p>
+<?php endforeach; ?>
+
+<h3>Totale: € <?php echo number_format($totale, 2, ',', '.'); ?></h3>
+
+<?php endif; ?>
 
 </body>
 </html>
